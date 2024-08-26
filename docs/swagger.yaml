@@ -1,0 +1,29 @@
+info:
+  contact: {}
+paths:
+  /media:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a media file
+      parameters:
+      - description: UploadMediaForm
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: uploadFile
+      tags:
+      - media
+swagger: "2.0"
