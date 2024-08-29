@@ -30,7 +30,7 @@ func main() {
 	url := ginSwagger.URL("swagger/doc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
-	router.Run(":50040")
+	router.Run("api-minio:50040")
 }
 
 // uploadFile

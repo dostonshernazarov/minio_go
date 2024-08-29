@@ -17,7 +17,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - minio
+
+  api-service:
+    container_name: api-minio
+    build: .
+    depends_on:
+      minio:
+        condition: service_started
+    ports:
+      - "50040:50040"
+    networks:
+      - minio
 
 volumes:
   minio_data:
     driver: local
+networks:
+  minio:
+    driver: bridge
