@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	_ "lessons/minio/docs"
 	"mime/multipart"
 	"path/filepath"
@@ -60,11 +61,9 @@ func Media(c *gin.Context) {
 
 	fileExt := filepath.Ext(file.File.Filename)
 
-	println("\n File Ext:", fileExt)
-
 	newFile := uuid.NewString() + fileExt
 
-	minioClient, err := minio.New("localhost:9000", &minio.Options{
+	minioClient, err := minio.New("3.70.205.207:9000", &minio.Options{
 		Creds:  credentials.NewStaticV4("test", "minioadmin", ""),
 		Secure: false,
 	})
@@ -72,6 +71,20 @@ func Media(c *gin.Context) {
 		c.AbortWithError(500, err)
 		return
 	}
+
+	policy := fmt.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+				{
+						"Effect": "Allow",
+						"Principal": {
+								"AWS": ["*"]
+						},
+						"Action": ["s3:GetObject"],
+						"Resource": ["arn:aws:s3:::%s/*"]
+				}
+		]
+}`, "photos")
 
 	// err = minioClient.MakeBucket(context.Background(), "photos", minio.MakeBucketOptions{})
 	// if err != nil {
@@ -87,6 +100,12 @@ func Media(c *gin.Context) {
 		return
 	}
 
+	err = minioClient.SetBucketPolicy(context.Background(), "photos", policy)
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+
 	println("\n Info Bucket:", info.Bucket)
 
 	objUrl, err := minioClient.PresignedGetObject(context.Background(), "photos", newFile, time.Hour*24, nil)
@@ -95,8 +114,11 @@ func Media(c *gin.Context) {
 		return
 	}
 
+	madeUrl := fmt.Sprintf("http://3.70.205.207:9000/photos/%s", newFile)
+
 	c.JSON(201, gin.H{
-		"url": objUrl.String(),
+		"url":      objUrl.String(),
+		"made_url": madeUrl,
 	})
 
 }
